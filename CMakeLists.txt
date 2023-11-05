@@ -5,10 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 
 find_package(OpenCV REQUIRED)
 find_library(MVS_LIB libMvCameraControl.so /opt/MVS/lib/64/)
+find_library(eigan  Dense /home/m/eigan/Dense)
 
 include_directories(${CERES_INCLUDE_DIRS})
 include_directories(NEXT_E_M)
 include_directories (/usr/include)
+include_directories(/hmoe/m/eigan)
 
 add_executable(NEXT_E_M main.cpp
         src/SERIAL.cpp

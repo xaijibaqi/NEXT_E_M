@@ -10,6 +10,7 @@
 #include <cstring>
 #include <stdio.h>
 #include <stdlib.h>
+#include "opencv2/opencv.hpp"
 
 class SERIAL {
 
@@ -20,8 +21,6 @@ public:
         std::string Enemy_color="Red";
         float Yaw_angle=0;
         float Pitch_angle=0;
-        float Spring_velocity=16;
-
     };
 
 //  串口通讯发送数据
@@ -30,6 +29,8 @@ public:
         float Pitch_angle=0;
         std::string Fire_control="N";
     };
+
+    Send_data serial_data;
 
     bool sp_ret;
 

@@ -31,12 +31,18 @@ public:
     struct Armour{
         Light_bar light_right;
         Light_bar light_left;
-        cv::Point2f center=light_right.centre/2+light_left.centre/2;
+        cv::Point2f center;
         float Distance_centers;
         std::string armour_type="SMALL";
         std::string lable_id;
         float confidence;
+        cv::Mat Rvec;
+        cv::Mat_<float> Tvec;
+
+
         float real_distance;
+        float shoot_pitch;
+        float shoot_yaw;
     };
 
     std::vector<Armour> Armour_list;

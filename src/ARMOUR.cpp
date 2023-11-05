@@ -15,6 +15,8 @@ void ARMOUR::Image_processing() {
 
     cv::Mat img =Cap_img.clone();
     std::vector<cv::Mat> channels;
+//    std::cout<<"Image_processing-";
+
 
     split(img,channels);
 
@@ -46,6 +48,8 @@ void ARMOUR::Image_processing() {
 
     Color_processing_img=img.clone();
 
+//    std::cout<<"Image_processing"<<" ";
+
 }
 
 void ARMOUR::find_light() {
@@ -66,23 +70,30 @@ void ARMOUR::find_light() {
     for(int i=0; i<contours.size(); i++) {
 
         cv::RotatedRect box1;
-        box1.points(rect);
         box1 = minAreaRect(cv::Mat(contours[i]        ));  //计算每个轮廓最小外接矩形
         box1.points(rect);
 
         Light_bar light1;
         light1.centre=box1.center;
         light1.angle=box1.angle;
+
+//        cv::circle(light_img,light1.centre,3,cv::Scalar (0,255,255),1,1);
         cv::Point2f point1,point2;
+
+
         float area1 = contourArea(contours[i]);
+
+        if (area1<100){
+            continue;
+        }
 //
         if (box1.size.width>box1.size.height){
             point1=(rect[0]/2+rect[1]/2);
-            point2=(rect[0]/2+rect[3/2]);
+            point2=(rect[2]/2+rect[3]/2);
             light1.lenth=box1.size.width;
         } else{
             point1=(rect[0]/2+rect[3]/2);
-            point2=(rect[0]/2+rect[1/2]);
+            point2=(rect[2]/2+rect[1]/2);
             light1.lenth=box1.size.width;
         }
 //
@@ -98,25 +109,35 @@ void ARMOUR::find_light() {
         light1.top=2*light1.top-light1.centre;
 
         Light_list.push_back(light1);
+        cv::line(light_img,light1.top,light1.bottom,cv::Scalar (0,255,0),1,1);
+//    std::cout<<Light_list.size()<<"\n";
+
+//    std::cout<<"find_light"<<" ";
+
     }
 
     Armour armour1;
     for (int i = 0; i < Light_list.size()-1; ++i) {
-        for (int j = i+1; j <Light_list.size()-1 ; ++j) {
+        if (Light_list.size()<1){
+            std::cout<<"\n no light \n";
+            break;
+        }
+        for (int j = i+1; j <Light_list.size(); ++j) {
+//            std::cout<<"  light ";
             Light_bar light1,light2;
             light1=Light_list[i];
             light2=Light_list[j];
 //边长比
-            float Length_ratio=light1.lenth/light2.lenth;
-            if (Length_ratio<0.5 && Length_ratio>1.5){
-                break;
-            }
+//            float Length_ratio=light1.lenth/light2.lenth;
+//            if (Length_ratio<0.5 && Length_ratio>1.5){
+//                break;
+//            }
 //中心距
             float Distance_centers= sqrt(pow(abs(light1.centre.x-light2.centre.x),2)+pow(abs(light1.centre.y-light2.centre.y),2));
 
-            if (Distance_centers>(2*light1.lenth) && Distance_centers>(2*light2.lenth)){
-                break;
-            }
+//            if (Distance_centers>(5*light1.lenth) && Distance_centers>(5*light2.lenth)){
+//                break;
+//            }
             if (light1.centre.x<=light2.centre.x){
                 armour1.light_left=light1;
                 armour1.light_right=light2;
@@ -128,9 +149,16 @@ void ARMOUR::find_light() {
                 armour1.armour_type="LARGE";
             }
             armour1.Distance_centers=Distance_centers;
+
+//            cv::line(light_img,armour1.light_left.top,armour1.light_left.bottom,cv::Scalar(0,0,255),1,1);
+//            cv::line(light_img,armour1.light_right.top,armour1.light_left.top,cv::Scalar(0,0,255),1,1);
+//            cv::line(light_img,armour1.light_left.bottom,armour1.light_left.bottom,cv::Scalar(0,0,255),1,1);
+
             Armour_list.push_back(armour1);
         }
     }
+//    std::cout<<Armour_list.size()<<"\n";
+//    std::cout<<"Armor"<<" ";
 }
 
 void ARMOUR::extractNumbers() {
@@ -151,14 +179,15 @@ void ARMOUR::extractNumbers() {
         for (int i = 0; i < Armour_list.size(); ++i) {
             Armour armour1=Armour_list[i];
 
+
             cv::Point2f lights_vertices[4]= {
                     armour1.light_left.bottom,
                     armour1.light_left.top,
                     armour1.light_right.top,
                     armour1.light_right.bottom,
             };
-            cv::line(light_img,armour1.light_left.bottom,armour1.light_left.top,cv::Scalar(0,255,0),1,1);
-            cv::line(light_img,armour1.light_right.bottom,armour1.light_right.top,cv::Scalar(0,255,0),1,1);
+
+//            cv::rectangle(light_img,armour1.light_left.top,armour1.light_right.bottom,cv::Scalar(0,0,255),1,1);
 
             const int top_light_y = (warp_height - light_length) / 2 - 1;
             const int bottom_light_y = top_light_y + light_length;
@@ -205,15 +234,22 @@ void ARMOUR::extractNumbers() {
             cv::Point class_id_point;
             minMaxLoc(softmax_prob.reshape(1, 1), nullptr, &confidence, nullptr, &class_id_point);
             int label_id = class_id_point.x;
-            if (label_id==8){
+            if (label_id==8 || confidence<0.8){
                 Armour_list.erase(Armour_list.begin()+i);
                 i--;
                 continue;
             }
+            Armour_list[i].center=Armour_list[i].light_right.centre/2+Armour_list[i].light_left.centre/2;
+            cv::putText(light_img,class_names_[label_id],armour1.center,1,1,cv::Scalar(0,255,0),1,1);
+            cv::rectangle(light_img,armour1.light_left.top,armour1.light_right.bottom,cv::Scalar(0,0,255),1,1);
+//            cv::line(light_img,armour1.light_left.top,armour1.light_left.bottom,cv::Scalar(0,0,255),1,1);
+//            cv::line(light_img,armour1.light_right.top,armour1.light_left.top,cv::Scalar(0,0,255),1,1);
+//            cv::line(light_img,armour1.light_left.bottom,armour1.light_left.bottom,cv::Scalar(0,0,255),1,1);
             Armour_list[i].lable_id=class_names_[label_id];
             Armour_list[i].confidence=confidence;
         }
     }
+//    std::cout<<"extractNumbers"<<" ";
 }
 
 void ARMOUR::distance_measurement() {
@@ -253,26 +289,21 @@ void ARMOUR::distance_measurement() {
         rotation_vector.convertTo(Rvec, CV_32F);  // 旋转向量转换格式
         translation_vector.convertTo(Tvec, CV_32F); // 平移向量转换格式
 
-        cv::Mat_<float> rotMat(3, 3);
-        Rodrigues(Rvec, rotMat);
+        Armour_list[i].Rvec=Rvec;
+        Armour_list[i].Tvec=Tvec;
+
+//        cv::Mat_<float> rotMat(3, 3);
+//        Rodrigues(Rvec, rotMat);
         // 旋转向量转成旋转矩阵
 //        cout << "rotMat" << endl << rotMat << endl << endl;
 
-        cv::Mat P_oc;
-        P_oc = rotMat.inv() * Tvec;
+//        cv::Mat P_oc;
+//        P_oc = rotMat.inv() * Tvec;
         // 求解相机的世界坐标，得出p_oc的第三个元素即相机到物体的距离即深度信息，单位是mm
-//        cout << "disance" << endl << P_oc.at<float>(0,0)<< endl;
-        armour1.real_distance=sqrt(pow(P_oc.at<float>(0,0),2)+pow(P_oc.at<float>(0,1),2)+pow(P_oc.at<float>(0,2),2));
 
-        cv::line(light_img,armour1.light_right.top,armour1.light_right.bottom,cv::Scalar(0,0,255),1,1);
-        cv::line(light_img,armour1.light_left.top,armour1.light_left.bottom,cv::Scalar(0,0,255),1,1);
+//        armour1.real_distance=sqrt(pow(P_oc.at<float>(0,0),2)+pow(P_oc.at<float>(0,1),2)+pow(P_oc.at<float>(0,2),2));
+//        Armour_list[i].shoot_yaw= atan(P_oc.at<float>(0,0)/P_oc.at<float>(0,2))*180;
 
-
-
-        putText(light_img, std::to_string(armour1.real_distance),armour1.center,1,1,cv::Scalar(0,255,0),1,1);
-
-//        cout<<"distance "<<armour1.real_distance<<endl;
-        Armour_list[i].real_distance=armour1.real_distance;
     }
 }
 
