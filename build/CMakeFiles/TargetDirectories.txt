@@ -1,0 +1,3 @@
+/home/m/CLionProjects/NEXT-E-M/build/CMakeFiles/NEXT_E_M.dir
+/home/m/CLionProjects/NEXT-E-M/build/CMakeFiles/edit_cache.dir
+/home/m/CLionProjects/NEXT-E-M/build/CMakeFiles/rebuild_cache.dir
