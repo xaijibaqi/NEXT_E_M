@@ -13,13 +13,14 @@ include_directories (/usr/include)
 include_directories(/hmoe/m/eigan)
 
 add_executable(NEXT_E_M main.cpp
-        src/SERIAL.cpp
         include/SERIAL.h
-        src/ARMOUR.cpp
         include/ARMOUR.h
-        src/ROBOT.cpp
         include/ROBOT.h
-
+        include/Kalman_filtering.h
+        src/SERIAL.cpp
+        src/ARMOUR.cpp
+        src/ROBOT.cpp
+        src/Kalman_filtering.cpp
         hik_camera/include/HikCam.hpp
         hik_camera/HikCam.cpp
 )

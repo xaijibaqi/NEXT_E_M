@@ -17,7 +17,7 @@ public:
     ~ARMOUR();
 
     std::vector<std::string> class_names_={"Base","1","2","3","4","5","Guard","Outpost","Negative"};
-
+    std::string model_path="/home/m/CLionProjects/NEXT-E-M/fc.onnx";
 
     struct Light_bar{
         cv::Point2f top;
@@ -65,11 +65,13 @@ public:
 
 
 
-    cv::Mat camera_matrix = (cv::Mat_<double>(3, 3) << 1869.07419731815, 0, 664.699824168277,
-            0, 1867.898354, 518.0525069,
+    cv::Mat camera_matrix = (cv::Mat_<double>(3, 3) <<
+            1872.40491, 0, 677.77858,
+            0, 1871.363, 482.91847,
             0, 0, 1);
 
-    cv::Mat dist_coeffs = (cv::Mat_<double>(5, 1) << -0.163116073466183, 0.255155351,
+    cv::Mat dist_coeffs = (cv::Mat_<double>(5, 1) <<
+            -0.17274,0.313088,
             0, 0, 0);
 
 };

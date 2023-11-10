@@ -64,7 +64,7 @@ bool SERIAL::open() {
         msg = "A";msg += "Y";
         if(serial_data.Yaw_angle>0)msg += "-";
         else msg += "+";
-        msg += cv::format("%06.2f", abs(serial_data.Yaw_angle=serial_data.Yaw_angle));
+        msg += cv::format("%06.2f", abs(serial_data.Yaw_angle));
         msg += "P";
         if(serial_data.Pitch_angle>0)msg += "+";
         else msg += "-";

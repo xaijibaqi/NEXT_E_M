@@ -63,10 +63,40 @@ void ROBOT::Trajectory_solution(){
     target_y=P_oc.at<float>(0,1);
     target_z=P_oc.at<float>(0,2);
 
+//    pitch计算常量
+    float k=0.015,v=Spring_velocity,g=9.8;
 
+//    y落点与角度成线性关系   二分法求解
 
+    float angle_left=-1.047197,angle_middle=0,angle_right=1.047197,y=0;
+    float vx,vy,t,c,x=target_z/1000,a,b;
+    vx=v*cos(angle_middle);
+    vy=v*sin(angle_middle);
 
+    t=(exp(k*x)-1)/(k*vx);
+    c = atan(sqrt(k / g) * vy) / sqrt(k * g);
+    a=cos((c-t)*sqrt(k*g));
+    b=cos(c*sqrt(k*g));
+    y=log(a/b)/k;
+    while (abs(y*1000-target_y)>50){
+        if (y*1000>=target_y){
+            angle_right=angle_middle;
+            angle_middle=angle_left/2+angle_right/2;
+        } else{
+            angle_left=angle_middle;
+            angle_middle=angle_left/2+angle_right/2;
+        }
+        vx=v*cos(angle_middle);
+        vy=v*sin(angle_middle);
 
+        t=(exp(k*x)-1)/(k*vx);
+        c = atan(sqrt(k / g) * vy) / sqrt(k * g);
+        a=cos((c-t)*sqrt(k*g));
+        b=cos(c*sqrt(k*g));
+        y=log(a/b)/k;
+    }
+
+    serial_data1.Pitch_angle=-angle_middle*180/3.141592;
 
     serial_data1.Yaw_angle= atan(-target_x/target_z)*180/3.141592;
 
@@ -83,7 +113,7 @@ void ROBOT::Trajectory_solution(){
     }
 
 
-        std::cout<<"\nPitch_angle "<<serial_data1.Pitch_angle<<" Yaw_angle "<<serial_data1.Yaw_angle<<" type "<< target_armour.lable_id<<"\n";
+        std::cout<<"\nPitch_angle "<<serial_data1.Pitch_angle<<" Yaw_angle "<<serial_data1.Yaw_angle<<" type "<< target_armour.lable_id<<" con "<<target_armour.confidence<<"\n";
 
 //    }
 }

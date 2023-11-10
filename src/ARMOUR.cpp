@@ -35,16 +35,16 @@ void ARMOUR::Image_processing() {
 
     if (Enemy_color=="Blue"){
 
-        img=blue;
+        img=blue-red/2;
 
     }
     else if (Enemy_color=="Red"){
 
-        img=red;
+        img=red-blue/2;
 
     }
 
-    threshold(img,img,150,255,cv::THRESH_BINARY);
+    threshold(img,img,100,255,cv::THRESH_BINARY);
 
     Color_processing_img=img.clone();
 
@@ -70,7 +70,7 @@ void ARMOUR::find_light() {
     for(int i=0; i<contours.size(); i++) {
 
         cv::RotatedRect box1;
-        box1 = minAreaRect(cv::Mat(contours[i]        ));  //计算每个轮廓最小外接矩形
+        box1 = minAreaRect(cv::Mat(contours[i]));  //计算每个轮廓最小外接矩形
         box1.points(rect);
 
         Light_bar light1;
@@ -109,7 +109,7 @@ void ARMOUR::find_light() {
         light1.top=2*light1.top-light1.centre;
 
         Light_list.push_back(light1);
-        cv::line(light_img,light1.top,light1.bottom,cv::Scalar (0,255,0),1,1);
+//        cv::line(light_img,light1.top,light1.bottom,cv::Scalar (0,255,0),1,1);
 //    std::cout<<Light_list.size()<<"\n";
 
 //    std::cout<<"find_light"<<" ";
@@ -134,27 +134,33 @@ void ARMOUR::find_light() {
 //            }
 //中心距
             float Distance_centers= sqrt(pow(abs(light1.centre.x-light2.centre.x),2)+pow(abs(light1.centre.y-light2.centre.y),2));
+            float light_lenth=light1.lenth/2+light2.lenth/2;
+            float qwer=Distance_centers/light_lenth;
 
-//            if (Distance_centers>(5*light1.lenth) && Distance_centers>(5*light2.lenth)){
-//                break;
-//            }
-            if (light1.centre.x<=light2.centre.x){
-                armour1.light_left=light1;
-                armour1.light_right=light2;
-            } else{
-                armour1.light_left=light2;
-                armour1.light_right=light1;
+            if (( qwer<5 && qwer>4 )|| (qwer>1 && qwer<3)){
+
+//                cv::putText(light_img,std::to_string(qwer),light1.centre,2,2,cv::Scalar(0,255,0),1,2);
+
+                if (light1.centre.x<=light2.centre.x){
+                    armour1.light_left=light1;
+                    armour1.light_right=light2;
+                } else{
+                    armour1.light_left=light2;
+                    armour1.light_right=light1;
+                }
+                if ((Distance_centers*2/(light1.lenth+light2.lenth))>1){
+                    armour1.armour_type="LARGE";
+                }
+                armour1.Distance_centers=Distance_centers;
+
+//                cv::line(light_img,armour1.light_left.top,armour1.light_left.bottom,cv::Scalar(0,0,255),2,1);
+//                 cv::line(light_img,armour1.light_right.top,armour1.light_left.top,cv::Scalar(0,0,255),2,1);
+//                 cv::line(light_img,armour1.light_left.bottom,armour1.light_left.bottom,cv::Scalar(0,0,255),2,1);
+
+//                cv::rectangle(light_img,armour1.light_left.top,armour1.light_right.bottom,cv::Scalar(0,0,255),2,1);
+
+                Armour_list.push_back(armour1);
             }
-            if ((Distance_centers*2/(light1.lenth+light2.lenth))>1){
-                armour1.armour_type="LARGE";
-            }
-            armour1.Distance_centers=Distance_centers;
-
-//            cv::line(light_img,armour1.light_left.top,armour1.light_left.bottom,cv::Scalar(0,0,255),1,1);
-//            cv::line(light_img,armour1.light_right.top,armour1.light_left.top,cv::Scalar(0,0,255),1,1);
-//            cv::line(light_img,armour1.light_left.bottom,armour1.light_left.bottom,cv::Scalar(0,0,255),1,1);
-
-            Armour_list.push_back(armour1);
         }
     }
 //    std::cout<<Armour_list.size()<<"\n";
@@ -163,7 +169,7 @@ void ARMOUR::find_light() {
 
 void ARMOUR::extractNumbers() {
 
-    std::string model_path="/home/m/CLionProjects/NEXT-E-M/fc.onnx";
+
     // Light length in image
     const int light_length = 12;
     // Image size after warp
@@ -248,8 +254,7 @@ void ARMOUR::extractNumbers() {
             Armour_list[i].lable_id=class_names_[label_id];
             Armour_list[i].confidence=confidence;
         }
-    }
-//    std::cout<<"extractNumbers"<<" ";
+    };
 }
 
 void ARMOUR::distance_measurement() {
